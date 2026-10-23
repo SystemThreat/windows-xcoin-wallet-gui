@@ -31,6 +31,7 @@ def payment_index(index):
     return str(i)
 DEFAULT_EXPLORER = "https://superknet.com"
 FORUM = "https://minedifferent.com"     # MineDifferent: sign in with the XID identity (key 99,999,999)
+FORUM_LEGACY_INDEX = 101                # the key NerdMiner and MMM signed in with: proved once so its account moves
 SETTINGS = Path.home() / ".xcoin" / "gui-settings.json"
 PENDING = Path.home() / ".xcoin" / "gui-pending.json"   # this app's sends that have not confirmed yet (public data only)
 IDLE_LOCK_SECONDS = 10 * 60
@@ -208,7 +209,7 @@ class Engine:
         return self._passphrase is not None
 
 
-VERSION = "2.0.0-test12"
+VERSION = "2.0.0-test13"
 _SELFTEST = None
 
 
@@ -359,7 +360,9 @@ class Api:
         """Sign in to MineDifferent with the XID identity (key 99,999,999). The forum hands out a challenge; the
         wallet signs its four-line message here (ML-DSA-65, the seed opened for this one signature); the signature
         and public key go back to the forum, which answers with a one-time link that the browser opens to sign in.
-        Nothing secret leaves this computer: only the identity, its public key and the signature."""
+        Key 101 of the same wallet (the key NerdMiner and MMM signed in with) also signs the challenge, with a line naming
+        this identity: the forum then moves an account that key holds here, once. Nothing secret leaves this computer:
+        only the identities, their public keys and the signatures."""
         def go():
             import urllib.request, webbrowser
             if not self._e.unlocked or not self._e.pub: raise w.WalletError("The wallet is locked.")
@@ -378,16 +381,18 @@ class Api:
             cid, template = c.get("id", ""), c.get("message_template", "")
             if not (len(cid) == 32 and all(ch in "0123456789abcdef" for ch in cid)) or "<your xid1… identity>" not in template:
                 raise w.WalletError("The forum sent a sign-in challenge this wallet does not recognise; nothing was signed.")
-            signed = self._e.run("signmessage", "--template", template.replace("<your xid1… identity>", "{address}"),
-                                 "--index", str(IDENTITY_INDEX), use_backend=False)
+            base = template.replace("<your xid1… identity>", "{address}")
+            signed = self._e.run("signmessage", "--template", base, "--index", str(IDENTITY_INDEX), use_backend=False)
             if signed.get("identity") != self._e.pub["identity"]:
                 raise w.WalletError("The signature did not come from this wallet's XID identity; nothing was sent.")
-            r = post(f"/api/challenge/{cid}/solve", {"address": signed["identity"], "pubkey": signed["pubkey"], "sig": signed["sig"]})
+            old = self._e.run("signmessage", "--template", base + "\ncarry-to: " + signed["identity"], "--index", str(FORUM_LEGACY_INDEX), use_backend=False)
+            r = post(f"/api/challenge/{cid}/solve", {"address": signed["identity"], "pubkey": signed["pubkey"], "sig": signed["sig"],
+                                                     "carry": {"address": old["identity"], "pubkey": old["pubkey"], "sig": old["sig"]}})
             link = r.get("login_url", "")
             if not r.get("ok") or not link.startswith(FORUM + "/l/"):
                 raise w.WalletError("The forum did not return a sign-in link.")
             webbrowser.open(link)
-            return {"identity": r.get("identity"), "role": r.get("role"), "badges": r.get("badges")}
+            return {"identity": r.get("identity"), "role": r.get("role"), "badges": r.get("badges"), "moved_from": r.get("moved_from")}
         return self._wrap(go)
 
     # ── chain ──

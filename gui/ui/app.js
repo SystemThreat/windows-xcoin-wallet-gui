@@ -359,7 +359,7 @@
       forum.onclick = () => busy(forum, async () => {
         const r = await call("forum_signin");   // signs the forum's challenge with key 99,999,999 here, then opens the browser
         note.hidden = false;
-        note.textContent = `Signed in to minedifferent.com${r.role === "founder" ? " as founder" : ""}. Your browser opened the one-time sign-in link; finish there.`;
+        note.textContent = `Signed in to minedifferent.com${r.role === "founder" ? " as founder" : ""}.${r.moved_from ? " Your earlier forum account (signed in with key 101) moved to this identity, with its name, posts and chat." : ""} Your browser opened the one-time sign-in link; finish there.`;
         toast("Signed in. Check your browser.", "good");
       }, "Signing…");
     } catch (e) { relock(e); }

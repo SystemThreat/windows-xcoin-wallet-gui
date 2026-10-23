@@ -4,7 +4,7 @@ A minimal, auditable **post-quantum** command-line wallet for xCoin (XID).
 
 ## Windows app: XID Wallet
 
-1. Download **`XID-Wallet-Windows-portable-2.0.0-test12.zip`** from this repository's
+1. Download **`XID-Wallet-Windows-portable-2.0.0-test13.zip`** from this repository's
    **Releases** page (not the green **Code** button: that zip is the source code, without
    the app's runtime, so it cannot run).
 2. Check the download (below).
@@ -16,33 +16,38 @@ A minimal, auditable **post-quantum** command-line wallet for xCoin (XID).
 In the app, **Settings, Shortcuts** puts an XID Wallet icon on the desktop and in the Start
 menu. Wallet files stay in `C:\Users\<you>\.xcoin\`, not in the app folder.
 
-**New in 2.0.0-test12:** Identity, **Sign in to MineDifferent** signs you in to the forum with your
-XID identity (key 99,999,999): the app signs the forum's challenge on your PC and opens the one-time
-sign-in link in your browser. Only the identity, its public key and the signature are sent.
+**New in 2.0.0-test13:** signed in to the forum before with NerdMiner or MMM? **Sign in to MineDifferent**
+also proves that wallet's key 101 once, and the forum moves your earlier account (name, posts, chat) to your
+XID identity. The Identity screen says when it moved. XID Wallet is now the only way to sign in to the forum.
+
+**2.0.0-test12:** Identity, **Sign in to MineDifferent** signs you in to the forum with your XID identity
+(key 99,999,999): the app signs the forum's challenge on your PC and opens the one-time sign-in link in your
+browser. Only identities, public keys and signatures are sent.
 
 ### File integrity (SHA-256)
 
 | File | Size (bytes) | SHA-256 |
 |---|---|---|
-| `XID-Wallet-Windows-portable-2.0.0-test12.zip` (latest) | 17,267,974 | `40b6bc8ef66bb9c1bd67355e208b7a9bcf259f3178a5b29315b751b748f2c99a` |
+| `XID-Wallet-Windows-portable-2.0.0-test13.zip` (latest) | 17,268,234 | `2a75a8e07dc5e9af631a104078e265235d161070e2b24618feac966481353bb8` |
+| `XID-Wallet-Windows-portable-2.0.0-test12.zip` | 17,267,974 | `40b6bc8ef66bb9c1bd67355e208b7a9bcf259f3178a5b29315b751b748f2c99a` |
 | `XID-Wallet-Windows-portable-2.0.0-test10.zip` | 17,250,725 | `4b842fddfe7191e894f0533f18463584559e381f62a8961b7e19c613f966f0c8` |
 | `XID-Wallet-Windows-portable-2.0.0-test9.zip` | 17,250,505 | `1b77c1ef62797007cb0822373af0fa45964e6fddaafa4fddf5816174bb286638` |
 
 Check it before you open anything. In PowerShell, in the folder with the zip:
 
 ```powershell
-(Get-FileHash .\XID-Wallet-Windows-portable-2.0.0-test12.zip -Algorithm SHA256).Hash -eq '40B6BC8EF66BB9C1BD67355E208B7A9BCF259F3178A5B29315B751B748F2C99A'
+(Get-FileHash .\XID-Wallet-Windows-portable-2.0.0-test13.zip -Algorithm SHA256).Hash -eq '2A75A8E07DC5E9AF631A104078E265235D161070E2B24618FEAC966481353BB8'
 ```
 
 `True` means the file is exactly the one published here. `False` means it is not: delete it
 and download it again from the Releases page. On macOS or Linux:
-`shasum -a 256 XID-Wallet-Windows-portable-2.0.0-test12.zip`.
+`shasum -a 256 XID-Wallet-Windows-portable-2.0.0-test13.zip`.
 
 The same hash is in the `.sha256` file attached to the release. A copy shared any other way
 (Google Drive, a USB stick) must match this hash too. The zip is built by
 `gui/build-portable.sh` (see [gui/README.md](gui/README.md)).
 
-### Source integrity (SHA-256), 2.0.0-test12
+### Source integrity (SHA-256), 2.0.0-test13
 
 `SHA256SUMS` lists the SHA-256 of every file in this repository (110 files) except `README.md`
 and `SHA256SUMS` itself, as committed. This table holds the hash of that list, so a change to
@@ -50,10 +55,10 @@ any file changes a hash somewhere you can see.
 
 | File | Size (bytes) | SHA-256 |
 |---|---|---|
-| `SHA256SUMS` (2.0.0-test12) | 10,281 | `7a09cb78308b2139a6ec8cbc3dd7a8725e36770f8dcde852c801840aca87b085` |
+| `SHA256SUMS` (2.0.0-test13) | 10,281 | `711004256536ec7022d9de9f1eeb47e100eb9e44ca936ac23b32960cf6a3dee5` |
 | `wallet_cli.py` | | `603a3562598f78f48adb72ee427afc8a7d28667ab4c6205259c9cd05ee6889cc` |
 | `card_seed.py` | | `a9f0580b9bfecb2351763c232a3d5737d7e8100d18231f2a2f342d27fa4d671d` |
-| `gui/backend.py` | | `27f7fac8f103194922297bf9d14cb50517ab5fb7b1931e4cc20bb92f0cf46a3b` |
+| `gui/backend.py` | | `f1323f672edd3604670da5d4ff0b9238a6ac5136dee1a5e8ecdba2a19f51e75f` |
 
 Check it from a clone with unchanged line endings (on Windows clone with
 `git -c core.autocrlf=false clone …`, otherwise Git rewrites the files and the hashes differ):
@@ -63,8 +68,8 @@ shasum -a 256 SHA256SUMS                 # must print the SHA256SUMS hash above
 shasum -a 256 -c SHA256SUMS              # every line must say OK
 ```
 
-The 2.0.0-test12 zip (first table) is built from exactly this source. 2.0.0-test11 was a source-only
-release (backup cards, seed choice, card test fix); test12 contains it.
+The 2.0.0-test13 zip (first table) is built from exactly this source. 2.0.0-test11 was a source-only
+release (backup cards, seed choice, card test fix); test12 and test13 contain it.
 
 ## Quick start: check a balance and send
 
