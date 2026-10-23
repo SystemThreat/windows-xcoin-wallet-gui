@@ -24,6 +24,7 @@
     send: () => ok({ txid: "f1e2d3c4b5a69788796a5b4c3d2e1f00112233445566778899aabbccddeeff00", fee: "0.00002960" }),
     card_create: () => ok({ card_uid: "04A1B2C3D4E580", permanent: false }), card_test: () => ok({ ok: true, uid: "04A1B2C3D4E580", label: "primary" }), card_status: () => ok([]), card_reset: () => ok({}),
     backup: () => ok(null), copy: () => ok(true), open_url: () => ok(true),
+    forum_signin: () => new Promise((r) => setTimeout(() => r({ ok: { identity: D.identity, role: "founder", badges: { blocks: 0, shares: 0 } } }), 900)),
   };
   window.pywebview = { api };
   window.addEventListener("load", () => {
