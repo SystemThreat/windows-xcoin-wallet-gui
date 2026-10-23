@@ -30,6 +30,7 @@ def payment_index(index):
     if i == IDENTITY_INDEX: raise w.WalletError("index 99,999,999 is your XID identity, never a payment address")
     return str(i)
 DEFAULT_EXPLORER = "https://superknet.com"
+FORUM = "https://minedifferent.com"     # MineDifferent: sign in with the XID identity (key 99,999,999)
 SETTINGS = Path.home() / ".xcoin" / "gui-settings.json"
 PENDING = Path.home() / ".xcoin" / "gui-pending.json"   # this app's sends that have not confirmed yet (public data only)
 IDLE_LOCK_SECONDS = 10 * 60
@@ -207,7 +208,7 @@ class Engine:
         return self._passphrase is not None
 
 
-VERSION = "2.0.0-test11"
+VERSION = "2.0.0-test12"
 _SELFTEST = None
 
 
@@ -352,6 +353,41 @@ class Api:
         def go():
             if not self._e.unlocked or not self._e.pub: raise w.WalletError("The wallet is locked.")
             return {"identity": self._e.pub["identity"], "index": IDENTITY_INDEX}
+        return self._wrap(go)
+
+    def forum_signin(self):
+        """Sign in to MineDifferent with the XID identity (key 99,999,999). The forum hands out a challenge; the
+        wallet signs its four-line message here (ML-DSA-65, the seed opened for this one signature); the signature
+        and public key go back to the forum, which answers with a one-time link that the browser opens to sign in.
+        Nothing secret leaves this computer: only the identity, its public key and the signature."""
+        def go():
+            import urllib.request, webbrowser
+            if not self._e.unlocked or not self._e.pub: raise w.WalletError("The wallet is locked.")
+            def post(path, body):
+                req = urllib.request.Request(FORUM + path, data=json.dumps(body).encode(), method="POST",
+                                             headers={"Content-Type": "application/json", "User-Agent": f"XID-Wallet/{VERSION}"})
+                try:
+                    with urllib.request.urlopen(req, timeout=20) as r: return json.loads(r.read() or b"{}")
+                except urllib.error.HTTPError as e:
+                    try: why = json.loads(e.read() or b"{}").get("error")
+                    except ValueError: why = None
+                    raise w.WalletError(f"The forum refused the sign-in: {why or e.reason} ({e.code}).")
+                except (urllib.error.URLError, TimeoutError) as e:
+                    raise w.WalletError(f"Could not reach {FORUM}: {getattr(e, 'reason', e)}.")
+            c = post("/api/challenge/new", {})
+            cid, template = c.get("id", ""), c.get("message_template", "")
+            if not (len(cid) == 32 and all(ch in "0123456789abcdef" for ch in cid)) or "<your xid1… identity>" not in template:
+                raise w.WalletError("The forum sent a sign-in challenge this wallet does not recognise; nothing was signed.")
+            signed = self._e.run("signmessage", "--template", template.replace("<your xid1… identity>", "{address}"),
+                                 "--index", str(IDENTITY_INDEX), use_backend=False)
+            if signed.get("identity") != self._e.pub["identity"]:
+                raise w.WalletError("The signature did not come from this wallet's XID identity; nothing was sent.")
+            r = post(f"/api/challenge/{cid}/solve", {"address": signed["identity"], "pubkey": signed["pubkey"], "sig": signed["sig"]})
+            link = r.get("login_url", "")
+            if not r.get("ok") or not link.startswith(FORUM + "/l/"):
+                raise w.WalletError("The forum did not return a sign-in link.")
+            webbrowser.open(link)
+            return {"identity": r.get("identity"), "role": r.get("role"), "badges": r.get("badges")}
         return self._wrap(go)
 
     # ── chain ──

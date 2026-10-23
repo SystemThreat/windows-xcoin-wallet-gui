@@ -22,6 +22,16 @@ This is the graphical wallet for xCoin (XID), built for Windows first. It also r
 - The app keeps it in memory only while the wallet is unlocked: it is dropped when you lock, and after 10 minutes without use.
 - The seed is decrypted for each action and never kept.
 
+## Forum sign-in (MineDifferent)
+
+Identity, **Sign in to MineDifferent**:
+1. The app asks minedifferent.com for a challenge (`POST /api/challenge/new`).
+2. It signs the challenge's four-line message with the XID identity (key 99,999,999) through the engine's `signmessage`, on this computer.
+3. It posts the identity, its public key and the signature (`POST /api/challenge/<id>/solve`).
+4. It opens the one-time sign-in link the forum returns in the default browser.
+
+Only public data leaves the computer. The forum account is the `xid1…` of key 99,999,999.
+
 ## Run it while developing
 
 ```bash
